@@ -36,7 +36,7 @@ HISTORY_FILE = os.path.join(CONFIG_DIR, 'conversation_history.json')
 
 use_model="deepseek-reasoner"
 use_stream=False
-use_temperature=0.9
+use_temperature=0.3
 api_key_s = "sk-42576b8258364c2e8f350e511708e767"
 urls="https://api.deepseek.com"
 client = OpenAI(api_key=api_key_s, base_url=urls)
@@ -101,13 +101,6 @@ def load_history():
     return None, None
 
 
-# 初始化上下文
-def init_context(preset_name="默认助手"):
-    system_prompt = preset_prompts.get(preset_name, preset_prompts["默认助手"])
-    return [
-        {"role": "system", "content": system_prompt}
-    ]
-
 
 # 主程序
 def main():
@@ -132,20 +125,19 @@ def main():
 
         selected = int(input("请选择预设角色（输入编号）：")) - 1
         preset_name = list(preset_prompts.keys())[selected]
-        conversation_context = init_context(preset_name)
 
     # 对话循环
     while True:
-        user_input = input("\nYou：").strip()+get_current_time_info()
+        user_input = input("\nYou：").strip()
 
-        if user_input.lower() in [r"\bye", "exit", "quit"]:
+        if user_input.lower() in ["\\bye", "exit", "quit"]:
             save_choice = input("是否保存当前对话？(y/n): ").lower()
             if save_choice == 'y':
                 save_history(preset_name, conversation_context)
                 print(f"对话已保存到 {HISTORY_FILE}")
             print("对话结束")
             break
-
+        user_input = user_input + get_current_time_info()
         conversation_context.append({"role": "user", "content": user_input})
 
         try:
