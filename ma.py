@@ -68,7 +68,15 @@ preset_prompts = {
     "面试官": "你是一个技术面试官，会提出有挑战性的问题并给出改进建议",
     "林汐然": file_content
 }
-
+def add_newline_after_punctuation(text):
+    # 定义需要添加换行符的标点符号
+    punctuation = '，。！？；：、……）'
+    result = ""
+    for char in text:
+        result += char
+        if char in punctuation:
+            result += '\n'
+    return result
 
 # 初始化配置目录
 def init_config():
@@ -151,7 +159,7 @@ def main():
             ai_response = response.choices[0].message.content
             conversation_context.append({"role": "assistant", "content": ai_response})
 
-            print(f"\n{preset_name}：", ai_response)
+            print(f"\n{preset_name}：", add_newline_after_punctuation(ai_response))
 
         except Exception as e:
             print("发生错误：", str(e))

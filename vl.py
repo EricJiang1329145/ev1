@@ -1,5 +1,9 @@
-if input("1:").lower() in ["\\bye", "exit", "quit"]:
-    save_choice = input("是否保存当前对话？(y/n): ").lower()
-    if save_choice == 'y':
-        print(f"对话已保存")
-    print("对话结束")
+def add_newline_after_punctuation(text):
+    # 定义需要添加换行符的标点符号
+    punctuation = '，。！？；：、……）'
+    result = ""
+    for char in text:
+        result += char
+        if char in punctuation:
+            result += '\n'
+    return result
