@@ -1,27 +1,9 @@
 import json
 import os
 from openai import OpenAI
-import datetime
+from utils import get_current_time_info, read_txt_file, add_newline_after_punctuation
 
-def get_current_time_info():
-    # 获取当前时间
-    current_time = datetime.datetime.now()
-    # 格式化日期和时间
-    formatted_time = current_time.strftime("%Y-%m-%d %H:%M:%S")
-    # 获取星期信息
-    weekday_mapping = {
-        0: "星期一",
-        1: "星期二",
-        2: "星期三",
-        3: "星期四",
-        4: "星期五",
-        5: "星期六",
-        6: "星期日"
-    }
-    weekday = weekday_mapping[current_time.weekday()]
-    # 组合输出信息
-    result = f"{formatted_time} {weekday}"
-    return result
+
 
 
 # 配置文件路径
@@ -35,25 +17,13 @@ CONFIG_DIR = os.path.join(current_directory, '.assistant_config')
 HISTORY_FILE = os.path.join(CONFIG_DIR, 'conversation_history.json')
 
 use_model="deepseek-reasoner"
-use_stream=False
-use_temperature=0.3
+use_stream=True
+use_temperature=0.7
 api_key_s = "sk-42576b8258364c2e8f350e511708e767"
 urls="https://api.deepseek.com"
 client = OpenAI(api_key=api_key_s, base_url=urls)
 
-def read_txt_file(file_name):
-    try:
-        # 使用with语句打开文件
-        with open(file_name, 'r', encoding='utf-8') as file:
-            # 读取整个文件内容到变量中
-            content = file.read()
-        return content
-    except FileNotFoundError:
-        print(f"文件 {file_name} 未找到。\n")
-        return None
-    except Exception as e:
-        print(f"读取文件时出现错误: {e}\n")
-        return None
+
 
 
 # 调用函数并传入文件名
@@ -61,22 +31,9 @@ file_content = read_txt_file('prompt.txt')
 
 # 提示词预设库
 preset_prompts = {
-
-    "默认助手": "你是一个乐于助人的AI助手",
-    "技术顾问": "你是一个资深技术专家，擅长用简洁易懂的方式解释复杂概念",
-    "翻译家": "你是一个专业翻译，能够准确翻译中英文内容",
-    "面试官": "你是一个技术面试官，会提出有挑战性的问题并给出改进建议",
     "林汐然": file_content
 }
-def add_newline_after_punctuation(text):
-    # 定义需要添加换行符的标点符号
-    punctuation = '，。！？；：、……）'
-    result = ""
-    for char in text:
-        result += char
-        if char in punctuation:
-            result += '\n'
-    return result
+
 
 # 初始化配置目录
 def init_config():
