@@ -5,7 +5,7 @@ from tknz.deepseek_tokenizer import get_tokenize
 from utils import get_current_time_info, read_txt_file
 from utils import add_newline_after_punctuation, extract_content_after_think, read_specific_line
 from utils import search_files, ask_user_choice
-from vl import modify_json_system_content
+from utils import modify_json_system_content
 
 
 # 配置文件路径
