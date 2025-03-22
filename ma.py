@@ -8,24 +8,33 @@ from utils import search_files, ask_user_choice
 from utils import modify_json_system_content
 
 
-# 配置文件路径
-# 获取当前脚本文件的绝对路径
-current_script_path = os.path.abspath(__file__)
-# 获取当前脚本所在的目录
-current_directory = os.path.dirname(current_script_path)
-# 拼接配置文件夹的路径
-CONFIG_DIR = os.path.join(current_directory, '.assistant_config')
-#拼接tknz的路径
-tknz_path = os.path.join(current_directory,'tknz')
-# 拼接对话历史文件的路径
-HISTORY_FILE = os.path.join(CONFIG_DIR, 'conversation_history.json')
-# 获取模型配置相关内容
-model_settings_dir = os.path.join(current_directory, "modelSettings")
-files = search_files(model_settings_dir)
+
+class ConfigManager:
+    def __init__(self):
+        # 获取当前工作目录
+        self.current_directory = os.getcwd()
+        # 拼接配置文件夹的路径
+        self.CONFIG_DIR = os.path.join(self.current_directory, '.assistant_config')
+        # 拼接 tknz 的路径
+        self.tknz_path = os.path.join(self.current_directory, 'tknz')
+        # 拼接对话历史文件的路径
+        self.HISTORY_FILE = os.path.join(self.CONFIG_DIR, 'conversation_history.json')
+        # 获取模型配置相关内容
+        self.model_settings_dir = os.path.join(self.current_directory, "modelSettings")
+
+
+
+config = ConfigManager()
+print(f"配置文件夹路径: {config.CONFIG_DIR}")
+print(f"token大小检测路径: {config.tknz_path}")
+print(f"对话历史文件路径: {config.HISTORY_FILE}")
+print(f"模型配置文件夹路径: {config.model_settings_dir}")
+
+files = search_files(config.model_settings_dir)
 selected_file = ask_user_choice(files)
-if selected_file:
-    print(f"你选择的文件是: {selected_file}")
-    msd=selected_file
+
+print(f"你选择的文件是: {selected_file}")
+msd=selected_file
 
 class ModelSettings:
     def __init__(self, model, api_key, url):
@@ -58,15 +67,15 @@ preset_prompts = {
 }
 # 初始化配置目录
 def init_config():
-    if not os.path.exists(CONFIG_DIR):
-        os.makedirs(CONFIG_DIR)
+    if not os.path.exists(config.CONFIG_DIR):
+        os.makedirs(config.CONFIG_DIR)
 
 
 # 保存对话上下文
 def save_history(preset_name, context):
     init_config()
     try:
-        with open(HISTORY_FILE, 'w', encoding='utf-8') as f:
+        with open(config.HISTORY_FILE, 'w', encoding='utf-8') as f:
             json.dump({
                 "preset": preset_name,
                 "history": context
@@ -78,8 +87,8 @@ def save_history(preset_name, context):
 # 加载历史记录
 def load_history():
     try:
-        if os.path.exists(HISTORY_FILE):
-            with open(HISTORY_FILE, 'r', encoding='utf-8') as f:
+        if os.path.exists(config.HISTORY_FILE):
+            with open(config.HISTORY_FILE, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 return data['preset'], data['history']
     except Exception as e:
@@ -100,7 +109,7 @@ def main():
             preset_name = saved_preset
             conversation_context = saved_context
             print("对话已恢复，输入'退出'结束对话")
-            modify_json_system_content(HISTORY_FILE,file_content)
+            modify_json_system_content(config.HISTORY_FILE,file_content)
 
         else:
             saved_preset = None
@@ -123,11 +132,11 @@ def main():
             save_choice = input("是否保存当前对话？(y/n): ").lower()
             if save_choice == 'y':
                 save_history(preset_name, conversation_context)
-                print(f"对话已保存到 {HISTORY_FILE}")
+                print(f"对话已保存到 {config.HISTORY_FILE}")
             print("对话结束")
             break
         user_input = user_input + get_current_time_info()
-        print(get_tokenize(user_input,tknz_path))
+        print(get_tokenize(user_input,config.tknz_path))
         conversation_context.append({"role": "user", "content": user_input})
 
         try:
@@ -142,7 +151,7 @@ def main():
             conversation_context.append({"role": "assistant", "content": ai_response})
 
             print(f"\n{preset_name}：", add_newline_after_punctuation(ai_response))
-            print(get_tokenize(ai_response,tknz_path))
+            print(get_tokenize(ai_response,config.tknz_path))
         except Exception as e:
             print("发生错误：", str(e))
             conversation_context = conversation_context[-4:]

@@ -1,6 +1,7 @@
 import datetime
 import os
 import json
+
 def get_current_time_info():
     # 获取当前时间
     current_time = datetime.datetime.now()
@@ -62,7 +63,6 @@ def add_newline_after_punctuation(text):
     if consecutive_punctuation:
         result += consecutive_punctuation + '\n'
     return result
-
 
 def read_specific_line(file_path, line_number):
     try:
