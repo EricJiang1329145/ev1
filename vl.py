@@ -1,23 +1,11 @@
 import os
-from utils import read_specific_line
-
-# 配置文件路径
-# 获取当前脚本文件的绝对路径
+from utils import search_files, ask_user_choice
 current_script_path = os.path.abspath(__file__)
 # 获取当前脚本所在的目录
 current_directory = os.path.dirname(current_script_path)
-msd = current_directory+"/modelSettings/model.txt"
-class modelSettings:
-    def __init__(self, model, api_key_s, urls):
-        self.model = model
-        self.api_key_s = api_key_s
-        self.urls = urls
+# 拼接配置文件夹的路径
+CONFIG_DIR = os.path.join(current_directory, '.assistant_config')
+# 拼接对话历史文件的路径
+HISTORY_FILE = os.path.join(CONFIG_DIR, 'conversation_history.json')
 
-    def introduce(self):
-        print(self.model,self.api_key_s,self.urls)
 
-useModelSettings = modelSettings(read_specific_line(msd,1),read_specific_line(msd,2),read_specific_line(msd,3))
-useModelSettings.introduce()
-use_model=useModelSettings.model
-api_key_s = useModelSettings.api_key_s
-urls=useModelSettings.urls

@@ -1,8 +1,9 @@
 import json
 import os
 from openai import OpenAI
-from utils import get_current_time_info, read_txt_file, add_newline_after_punctuation, extract_content_after_think, read_specific_line
-
+from utils import get_current_time_info, read_txt_file
+from utils import add_newline_after_punctuation, extract_content_after_think, read_specific_line
+from utils import search_files, ask_user_choice
 
 
 
@@ -16,27 +17,30 @@ CONFIG_DIR = os.path.join(current_directory, '.assistant_config')
 # 拼接对话历史文件的路径
 HISTORY_FILE = os.path.join(CONFIG_DIR, 'conversation_history.json')
 # 获取模型配置相关内容
-msd = current_directory+"/modelSettings/model.txt"
-class modelSettings:
-    def __init__(self, model, api_key_s, urls):
+model_settings_dir = os.path.join(current_directory, "modelSettings")
+files = search_files(model_settings_dir)
+selected_file = ask_user_choice(files)
+if selected_file:
+    print(f"你选择的文件是: {selected_file}")
+    msd=selected_file
+
+class ModelSettings:
+    def __init__(self, model, api_key, url):
         self.model = model
-        self.api_key_s = api_key_s
-        self.urls = urls
+        self.apiKey = api_key
+        self.url = url
 
     def introduce(self):
-        print(self.model,self.api_key_s,self.urls)
+        print(self.model,self.apiKey,self.url)
 
-ums = modelSettings(read_specific_line(msd,1),read_specific_line(msd,2),read_specific_line(msd,3))
+ums = ModelSettings(read_specific_line(msd,1),read_specific_line(msd,2),read_specific_line(msd,3))
 ums.introduce()
 use_model= ums.model
-api_key_s = ums.api_key_s
-urls= ums.urls
+api_key_s = ums.apiKey
+urls= ums.url
 
-use_model= ums.model
 use_stream=False
 use_temperature=0.9
-api_key_s = ums.api_key_s
-urls=ums.urls
 client = OpenAI(api_key=api_key_s, base_url=urls)
 
 
@@ -63,7 +67,7 @@ def save_history(preset_name, context):
             json.dump({
                 "preset": preset_name,
                 "history": context
-            }, f, ensure_ascii=False, indent=2)
+            }, f, ensure_ascii=False, indent=2)# type: ignore
     except Exception as e:
         print(f"保存历史记录失败: {str(e)}")
 

@@ -1,4 +1,5 @@
 import datetime
+import os
 def get_current_time_info():
     # 获取当前时间
     current_time = datetime.datetime.now()
@@ -66,3 +67,43 @@ def read_specific_line(file_path, line_number):
         print(f"错误: 发生未知错误 - {e}")
     return None
 
+def search_files(directory):
+    """
+    搜索指定目录下所有可读取的文件
+    :param directory: 要搜索的目录
+    :return: 可读取文件的列表
+    """
+    file_list = []
+    if os.path.exists(directory):
+        for root, dirs, files in os.walk(directory):
+            for file in files:
+                file_path = os.path.join(root, file)
+                try:
+                    with open(file_path, 'r') as f:
+                        file_list.append(file_path)
+                except Exception:
+                    continue
+    return file_list
+
+
+def ask_user_choice(file_list):
+    """
+    询问用户选择使用哪个文件
+    :param file_list: 可读取文件的列表
+    :return: 用户选择的文件路径
+    """
+    if not file_list:
+        print("未找到可读取的文件。")
+        return None
+    print("可读取的文件有：")
+    for i, file in enumerate(file_list, start=1):
+        print(f"{i}. {file}")
+    while True:
+        try:
+            choice = int(input("请输入要使用的文件编号: "))
+            if 1 <= choice <= len(file_list):
+                return file_list[choice - 1]
+            else:
+                print("输入的编号无效，请重新输入。")
+        except ValueError:
+            print("输入无效，请输入一个数字。")
