@@ -1,12 +1,13 @@
 import json
 import os
-from openai import OpenAI
-from tknz.deepseek_tokenizer import get_tokenize
-from utils import get_current_time_info, read_txt_file
-from utils import add_newline_after_punctuation, extract_content_after_think, read_specific_line
-from utils import search_files, ask_user_choice
-from utils import modify_json_system_content
 
+from openai import OpenAI
+
+from tknz.deepseek_tokenizer import get_tokenize
+from utils import add_newline_after_punctuation, extract_content_after_think, read_specific_line
+from utils import get_current_time_info, read_txt_file
+from utils import modify_json_system_content
+from utils import search_files, ask_user_choice
 
 
 class ConfigManager:
@@ -23,7 +24,6 @@ class ConfigManager:
         self.model_settings_dir = os.path.join(self.current_directory, "modelSettings")
 
 
-
 config = ConfigManager()
 print(f"配置文件夹路径: {config.CONFIG_DIR}")
 print(f"token大小检测路径: {config.tknz_path}")
@@ -34,7 +34,8 @@ files = search_files(config.model_settings_dir)
 selected_file = ask_user_choice(files)
 
 print(f"你选择的文件是: {selected_file}")
-msd=selected_file
+msd = selected_file
+
 
 class ModelSettings:
     def __init__(self, model, api_key, url):
@@ -43,28 +44,26 @@ class ModelSettings:
         self.url = url
 
     def introduce(self):
-        print(self.model,self.apiKey,self.url)
+        print(self.model, self.apiKey, self.url)
 
-ums = ModelSettings(read_specific_line(msd,1),read_specific_line(msd,2),read_specific_line(msd,3))
+
+ums = ModelSettings(read_specific_line(msd, 1), read_specific_line(msd, 2), read_specific_line(msd, 3))
 ums.introduce()
-use_model= ums.model
+use_model = ums.model
 api_key_s = ums.apiKey
-urls= ums.url
+urls = ums.url
 
-use_stream=False
-use_temperature=0.9
+use_stream = False
+use_temperature = 0.9
 client = OpenAI(api_key=api_key_s, base_url=urls)
-
-
-
 
 # 调用函数并传入文件名
 file_content = read_txt_file('prompt.txt')
 
 # 提示词预设库
-preset_prompts = {
-    "林汐然": file_content
-}
+preset_prompts = {"林汐然": file_content}
+
+
 # 初始化配置目录
 def init_config():
     if not os.path.exists(config.CONFIG_DIR):
@@ -76,10 +75,7 @@ def save_history(preset_name, context):
     init_config()
     try:
         with open(config.HISTORY_FILE, 'w', encoding='utf-8') as f:
-            json.dump({
-                "preset": preset_name,
-                "history": context
-            }, f, ensure_ascii=False, indent=2)# type: ignore
+            json.dump({"preset": preset_name, "history": context}, f, ensure_ascii=False, indent=2)  # type: ignore
     except Exception as e:
         print(f"保存历史记录失败: {str(e)}")
 
@@ -96,7 +92,6 @@ def load_history():
     return None, None
 
 
-
 # 主程序
 def main():
     # 尝试加载历史记录
@@ -109,7 +104,7 @@ def main():
             preset_name = saved_preset
             conversation_context = saved_context
             print("对话已恢复，输入'退出'结束对话")
-            modify_json_system_content(config.HISTORY_FILE,file_content)
+            modify_json_system_content(config.HISTORY_FILE, file_content)
 
         else:
             saved_preset = None
@@ -136,22 +131,18 @@ def main():
             print("对话结束")
             break
         user_input = user_input + get_current_time_info()
-        print(get_tokenize(user_input,config.tknz_path))
+        print(get_tokenize(user_input, config.tknz_path))
         conversation_context.append({"role": "user", "content": user_input})
 
         try:
-            response = client.chat.completions.create(
-                model=use_model,
-                messages=conversation_context,
-                stream=use_stream,
-                temperature=use_temperature
-            )
+            response = client.chat.completions.create(model=use_model, messages=conversation_context, stream=use_stream,
+                temperature=use_temperature)
 
-            ai_response =extract_content_after_think(response.choices[0].message.content).lstrip()
+            ai_response = extract_content_after_think(response.choices[0].message.content).lstrip()
             conversation_context.append({"role": "assistant", "content": ai_response})
 
             print(f"\n{preset_name}：", add_newline_after_punctuation(ai_response))
-            print(get_tokenize(ai_response,config.tknz_path))
+            print(get_tokenize(ai_response, config.tknz_path))
         except Exception as e:
             print("发生错误：", str(e))
             conversation_context = conversation_context[-4:]
