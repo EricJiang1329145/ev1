@@ -1,7 +1,7 @@
 import json
 import os
 from openai import OpenAI
-from utils import get_current_time_info, read_txt_file, add_newline_after_punctuation
+from utils import get_current_time_info, read_txt_file, add_newline_after_punctuation, extract_content_after_think, read_specific_line
 
 
 
@@ -15,12 +15,28 @@ current_directory = os.path.dirname(current_script_path)
 CONFIG_DIR = os.path.join(current_directory, '.assistant_config')
 # 拼接对话历史文件的路径
 HISTORY_FILE = os.path.join(CONFIG_DIR, 'conversation_history.json')
+# 获取模型配置相关内容
+msd = current_directory+"/modelSettings/model.txt"
+class modelSettings:
+    def __init__(self, model, api_key_s, urls):
+        self.model = model
+        self.api_key_s = api_key_s
+        self.urls = urls
 
-use_model="deepseek-reasoner"
-use_stream=True
-use_temperature=0.7
-api_key_s = "sk-42576b8258364c2e8f350e511708e767"
-urls="https://api.deepseek.com"
+    def introduce(self):
+        print(self.model,self.api_key_s,self.urls)
+
+ums = modelSettings(read_specific_line(msd,1),read_specific_line(msd,2),read_specific_line(msd,3))
+ums.introduce()
+use_model= ums.model
+api_key_s = ums.api_key_s
+urls= ums.urls
+
+use_model= ums.model
+use_stream=False
+use_temperature=0.9
+api_key_s = ums.api_key_s
+urls=ums.urls
 client = OpenAI(api_key=api_key_s, base_url=urls)
 
 
@@ -33,8 +49,6 @@ file_content = read_txt_file('prompt.txt')
 preset_prompts = {
     "林汐然": file_content
 }
-
-
 # 初始化配置目录
 def init_config():
     if not os.path.exists(CONFIG_DIR):
@@ -113,7 +127,7 @@ def main():
                 temperature=use_temperature
             )
 
-            ai_response = response.choices[0].message.content
+            ai_response =extract_content_after_think(response.choices[0].message.content)
             conversation_context.append({"role": "assistant", "content": ai_response})
 
             print(f"\n{preset_name}：", add_newline_after_punctuation(ai_response))

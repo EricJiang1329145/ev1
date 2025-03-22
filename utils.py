@@ -19,6 +19,15 @@ def get_current_time_info():
     result = f"{formatted_time} {weekday}"
     return "["+result+"]"
 
+def extract_content_after_think(input_str):
+    # 查找 </think> 的位置
+    index = input_str.find("</think>")
+    if index != -1:
+        # 如果找到 </think>，则返回其后的部分
+        return input_str[index + len("</think>"):]
+    else:
+        # 如果未找到 </think>，则返回原始字符串
+        return input_str
 
 def read_txt_file(file_name):
     try:
@@ -43,3 +52,17 @@ def add_newline_after_punctuation(text):
         if char in punctuation:
             result += '\n'
     return result
+
+def read_specific_line(file_path, line_number):
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            for i, line in enumerate(file, start=1):
+                if i == line_number:
+                    return line.strip()
+            return None
+    except FileNotFoundError:
+        print(f"错误: 文件 {file_path} 未找到。")
+    except Exception as e:
+        print(f"错误: 发生未知错误 - {e}")
+    return None
+
