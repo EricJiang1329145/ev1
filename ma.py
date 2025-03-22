@@ -1,10 +1,11 @@
 import json
 import os
 from openai import OpenAI
+from tknz.deepseek_tokenizer import get_tokenize
 from utils import get_current_time_info, read_txt_file
 from utils import add_newline_after_punctuation, extract_content_after_think, read_specific_line
 from utils import search_files, ask_user_choice
-
+from vl import modify_json_system_content
 
 
 # 配置文件路径
@@ -14,6 +15,8 @@ current_script_path = os.path.abspath(__file__)
 current_directory = os.path.dirname(current_script_path)
 # 拼接配置文件夹的路径
 CONFIG_DIR = os.path.join(current_directory, '.assistant_config')
+#拼接tknz的路径
+tknz_path = os.path.join(current_directory,'tknz')
 # 拼接对话历史文件的路径
 HISTORY_FILE = os.path.join(CONFIG_DIR, 'conversation_history.json')
 # 获取模型配置相关内容
@@ -97,11 +100,14 @@ def main():
             preset_name = saved_preset
             conversation_context = saved_context
             print("对话已恢复，输入'退出'结束对话")
+            modify_json_system_content(HISTORY_FILE,file_content)
+
         else:
             saved_preset = None
 
     if not saved_preset:
         # 选择预设流程
+        conversation_context = []
         print("\n可用的角色预设：")
         for i, (name) in enumerate(preset_prompts.items(), 1):
             print(f"{i}. {name}")
@@ -121,6 +127,7 @@ def main():
             print("对话结束")
             break
         user_input = user_input + get_current_time_info()
+        print(get_tokenize(user_input,tknz_path))
         conversation_context.append({"role": "user", "content": user_input})
 
         try:
@@ -131,11 +138,11 @@ def main():
                 temperature=use_temperature
             )
 
-            ai_response =extract_content_after_think(response.choices[0].message.content)
+            ai_response =extract_content_after_think(response.choices[0].message.content).lstrip()
             conversation_context.append({"role": "assistant", "content": ai_response})
 
             print(f"\n{preset_name}：", add_newline_after_punctuation(ai_response))
-
+            print(get_tokenize(ai_response,tknz_path))
         except Exception as e:
             print("发生错误：", str(e))
             conversation_context = conversation_context[-4:]

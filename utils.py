@@ -48,11 +48,20 @@ def add_newline_after_punctuation(text):
     # 定义需要添加换行符的标点符号
     punctuation = '，。！？；：、……）'
     result = ""
+    consecutive_punctuation = ""
     for char in text:
-        result += char
         if char in punctuation:
-            result += '\n'
+            consecutive_punctuation += char
+        else:
+            if consecutive_punctuation:
+                result += consecutive_punctuation + '\n'
+                consecutive_punctuation = ""
+            result += char
+    # 处理字符串结尾的连续标点符号
+    if consecutive_punctuation:
+        result += consecutive_punctuation + '\n'
     return result
+
 
 def read_specific_line(file_path, line_number):
     try:

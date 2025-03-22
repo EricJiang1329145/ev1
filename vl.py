@@ -1,11 +1,24 @@
+import json
 import os
-from utils import search_files, ask_user_choice
-current_script_path = os.path.abspath(__file__)
-# 获取当前脚本所在的目录
-current_directory = os.path.dirname(current_script_path)
-# 拼接配置文件夹的路径
-CONFIG_DIR = os.path.join(current_directory, '.assistant_config')
-# 拼接对话历史文件的路径
-HISTORY_FILE = os.path.join(CONFIG_DIR, 'conversation_history.json')
 
+def modify_json_system_content(file_path, new_content):
+    try:
+        if not os.path.exists(file_path):
+            print("错误: 文件未找到。")
+            return
 
+        with open(file_path, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+
+        for entry in data.get("history", []):
+            if entry.get("role") == "system":
+                entry["content"] = new_content
+                break
+
+        with open(file_path, 'w', encoding='utf-8') as file:
+            json.dump(data, file, ensure_ascii=False, indent=2)
+        print("JSON 文件已成功更新。")
+    except json.JSONDecodeError:
+        print("错误: 无法解析 JSON 文件。")
+    except Exception as e:
+        print(f"错误: 发生了一个未知错误: {e}")
