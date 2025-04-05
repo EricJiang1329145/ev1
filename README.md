@@ -39,7 +39,7 @@ pip install openai
 ### 运行程序
 在终端中运行以下命令启动程序：
 ```bash
-python ma.py
+python main.py
 ```
 
 ### 配置文件说明

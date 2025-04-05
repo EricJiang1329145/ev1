@@ -2,7 +2,5 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/DeepSeek-R1-Distill-Llama-8B" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/DeepSeek-R1-Distill-Qwen-14B" vcs="Git" />
   </component>
 </project>
