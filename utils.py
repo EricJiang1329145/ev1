@@ -1,6 +1,13 @@
 import datetime
 import os
 import json
+import re
+
+
+def replace_consecutive_newlines(input_string):
+    pattern = r'\n{2,}'
+    return re.sub(pattern, '\n', input_string)
+
 
 def get_current_time_info():
     # 获取当前时间
@@ -31,7 +38,9 @@ def extract_content_after_think(input_str):
     else:
         # 如果未找到 </think>，则返回原始字符串
         return input_str
-
+# 定义一个函数，用于预处理响应
+def preprocess_response(response):
+    return replace_consecutive_newlines(extract_content_after_think(response)).lstrip()
 def read_txt_file(file_name):
     try:
         # 使用with语句打开文件
@@ -48,7 +57,7 @@ def read_txt_file(file_name):
 
 def add_newline_after_punctuation(text):
     # 定义需要添加换行符的标点符号
-    punctuation = '，。！？；：、……）'
+    punctuation = '，。！？；：、.,…）'
     result = ""
     consecutive_punctuation = ""
     for char in text:

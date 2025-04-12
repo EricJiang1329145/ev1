@@ -1,14 +1,9 @@
-import json
-import os
 import sys
 
 from openai import OpenAI
 
 from tknz.deepseek_tokenizer import get_tokenize
-from utils import add_newline_after_punctuation, extract_content_after_think, read_specific_line
-from utils import get_current_time_info, read_txt_file
-from utils import modify_json_system_content
-from utils import search_files, ask_user_choice
+from utils import *
 
 
 class ConfigManager:
@@ -26,7 +21,7 @@ config = ConfigManager()
 def selected_file():
     files = search_files(config.model_settings_dir)
     selected_file = ask_user_choice(files)
-    print(f"你选择的文件是: {selected_file}")
+    print(f"\033[31m你选择的文件是: \033[0m{selected_file}")
     return selected_file
 
 
@@ -54,7 +49,7 @@ def save_history(preset_name, context):
         with open(config.HISTORY_FILE, 'w', encoding='utf-8') as f:
             json.dump({"preset": preset_name, "history": context}, f, ensure_ascii=False, indent=2)  # type: ignore
     except Exception as e:
-        print(f"保存历史记录失败: {str(e)}")
+        print(f"\033[31m保存历史记录失败: \033[0m{str(e)}")
 
 
 # 加载历史记录
@@ -65,7 +60,7 @@ def load_history():
                 data = json.load(f)
                 return data['preset'], data['history']
     except Exception as e:
-        print(f"加载历史记录失败: {str(e)}")
+        print(f"\033[31m加载历史记录失败: \033[0m{str(e)}")
     return None, None
 
 
@@ -91,12 +86,12 @@ def main():
     saved_preset, saved_context = load_history()
 
     if saved_preset and saved_context:
-        print(f"\n找到上次的对话记录（预设角色：{saved_preset}）")
-        choice = input("是否恢复上次对话？(y/n): ").lower()
+        print(f"\n\033[31m找到上次的对话记录（预设角色：\033[0m{saved_preset}）")
+        choice = input("\033[31m是否恢复上次对话？(\033[0my\033[31m/\033[0mn\033[31m):\033[0m ").lower()
         if choice == 'y':
             preset_name = saved_preset
             conversation_context = saved_context
-            print("对话已恢复，输入'退出'结束对话")
+            print("\033[31m对话已恢复，输入'退出'结束对话\033[0m")
             modify_json_system_content(config.HISTORY_FILE, file_content)
 
         else:
@@ -105,22 +100,22 @@ def main():
     if not saved_preset:
         # 选择预设流程
         conversation_context = []
-        print("\n可用的角色预设：")
+        print("\n\033[31m可用的角色预设：\033[0m")
         for i, (name) in enumerate(preset_prompts.items(), 1):
             print(f"{i}. {name}")
 
-        selected = int(input("请选择预设角色（输入编号）：")) - 1
+        selected = int(input("\033[31m请选择预设角色（输入编号）：\033[0m")) - 1
         preset_name = list(preset_prompts.keys())[selected]
 
     # 对话循环
     while True:
-        user_input = input("\nYou：").strip()
+        user_input = input("\n\033[36mYou：\033[0m").strip()
 
         if user_input.lower() in ["\\bye", "exit", "quit"]:
-            save_choice = input("是否保存当前对话？(y/n): ").lower()
+            save_choice = input("\033[31m是否保存当前对话？(y/n): \033[0m").lower()
             if save_choice == 'y':
                 save_history(preset_name, conversation_context)
-                print(f"对话已保存到 {config.HISTORY_FILE}")
+                print(f"\033[32m对话已保存到 {config.HISTORY_FILE}\033[30m")
             print("对话结束")
             break
         user_input = user_input + get_current_time_info()
@@ -128,22 +123,26 @@ def main():
         conversation_context.append({"role": "user", "content": user_input})
 
         try:
-            response = client.chat.completions.create(model=use_model, messages=conversation_context, stream=use_stream,
+            response = client.chat.completions.create(model=use_model,
+                messages=conversation_context,
+                stream=use_stream,
                 temperature=use_temperature)
 
-            ai_response = extract_content_after_think(response.choices[0].message.content).lstrip()
+            ai_response = preprocess_response(response.choices[0].message.content).lstrip()
             conversation_context.append({"role": "assistant", "content": ai_response})
 
             print(f"\n{preset_name}：", add_newline_after_punctuation(ai_response))
             print(get_tokenize(ai_response, config.tknz_path))
         except Exception as e:
-            print("发生错误：", str(e))
+            print("\033[31m发生错误：\033[0m", str(e))
             conversation_context = conversation_context[-4:]
 
 
 def print_welcome():
     print("欢迎使用本程序！")
-
+    print("\033[31m这是红色文本\033[0m")
+    print("\033[32m这是绿色文本\033[0m")
+    print("\033[1;34m这是亮蓝色文本\033[0m")
 
 def calculate_sum():
     total = sum(range(1, 11))
@@ -165,15 +164,15 @@ def perform_operation():
     for key, value in operations.items():
         print(f"{key}. {value.__name__}")
     try:
-        choice = int(input("请输入操作对应的数字："))
+        choice = int(input("\033[31m请输入操作对应的数字：\033[0m"))
         if choice in operations:
             result = operations[choice]()
             if result is not None:
                 return
         else:
-            print("输入的数字无效，请输入 1 - 3 之间的数字。")
+            print("\033[31m输入的数字无效，请输入有效数字。\033[0m")
     except ValueError:
-        print("输入无效，请输入一个有效的整数。")
+        print("\033[31m输入无效，请输入一个有效的整数。\033[0m")
     perform_operation()
 
 
