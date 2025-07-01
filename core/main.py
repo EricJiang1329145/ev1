@@ -1,21 +1,25 @@
 import sys
+import os
+
+# 添加项目根目录到Python路径
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from openai import OpenAI
 
 from tknz.deepseek_tokenizer import get_tokenize
-from utils import *
+from utils.utils import *
 
 
 class ConfigManager:
     def __init__(self):
         # 拼接配置文件夹的路径
-        self.CONFIG_DIR = '.assistant_config'
+        self.CONFIG_DIR = '../.assistant_config'
         # 拼接 tknz 的路径
-        self.tknz_path = 'tknz'
+        self.tknz_path = '../tknz'
         # 拼接对话历史文件的路径
         self.HISTORY_FILE = os.path.join(self.CONFIG_DIR, 'conversation_history.json')
         # 获取模型配置相关内容
-        self.model_settings_dir = "modelSettings"
+        self.model_settings_dir = "../modelSettings"
 
 config = ConfigManager()
 def selected_file():
@@ -78,7 +82,7 @@ def main():
     client = OpenAI(api_key=api_key_s, base_url=urls)
 
     # 调用函数并传入文件名
-    file_content = read_txt_file('prompt.txt')
+    file_content = read_txt_file('../prompt.txt')
 
     # 提示词预设库
     preset_prompts = {"林汐然": file_content}
