@@ -5,10 +5,12 @@ from openai import OpenAI
 from tknz.deepseek_tokenizer import get_tokenize
 from utils import *
 import os
+from dotenv import load_dotenv
 
 
 class ConfigManager:
     def __init__(self):
+        load_dotenv()  # 加载.env文件
         self.CONFIG_DIR = os.getenv('ASSISTANT_CONFIG', '.assistant_config')
         self.tknz_path = os.path.join(os.path.dirname(__file__), 'tknz')
         self.HISTORY_FILE = os.path.join(self.CONFIG_DIR, 'conversation_history.json')
@@ -45,8 +47,9 @@ def save_history(preset_name, context):
     try:
         with open(config.HISTORY_FILE, 'w', encoding='utf-8') as f:
             json.dump({"preset": preset_name, "history": context}, f, ensure_ascii=False, indent=2)  # type: ignore
+        OperationLogger.log_operation('对话保存', '成功')
     except Exception as e:
-        print(f"\033[31m保存历史记录失败: \033[0m{str(e)}")
+        OperationLogger.log_error('对话保存', e)
 
 
 # 加载历史记录
@@ -84,7 +87,7 @@ def main():
 
     if saved_preset and saved_context:
         print(f"\n\033[31m找到上次的对话记录（预设角色：\033[0m{saved_preset}）")
-        choice = input("\033[31m是否恢复上次对话？(\033[0my\033[31m/\033[0mn\033[31m):\033[0m ").lower()
+        choice = safe_input("\033[31m是否恢复上次对话？(\033[0my\033[31m/\033[0mn\033[31m):\033[0m ").lower()
         if choice == 'y':
             preset_name = saved_preset
             conversation_context = saved_context
@@ -106,9 +109,10 @@ def main():
 
     # 对话循环
     while True:
-        user_input = input("\n\033[36mYou：\033[0m").strip()
+        user_input = safe_input("\n\033[36mYou：\033[0m").strip()
 
         if user_input.lower() in ["\\bye", "exit", "quit"]:
+            # 原有退出逻辑保持不变
             save_choice = input("\033[31m是否保存当前对话？(y/n): \033[0m").lower()
             if save_choice == 'y':
                 save_history(preset_name, conversation_context)
@@ -151,25 +155,58 @@ def exit_program():
     sys.exit()
 
 
+def configure_environment_vars():
+    default_config = {
+        'ASSISTANT_CONFIG': '.assistant_config',
+        'MODEL_SETTINGS_DIR': 'modelSettings'
+    }
+    
+    print("\n当前环境变量配置：")
+    print(f"1. ASSISTANT_CONFIG: {os.getenv('ASSISTANT_CONFIG', default_config['ASSISTANT_CONFIG'])}")
+    print(f"2. MODEL_SETTINGS_DIR: {os.getenv('MODEL_SETTINGS_DIR', default_config['MODEL_SETTINGS_DIR'])}")
+    
+    choice = safe_input("\033[31m请选择要修改的配置项（1-2）或输入'r'恢复默认: \033[0m")
+    
+    if choice.lower() == 'r':
+        with open('.env', 'w') as f:
+            f.write('')  # 清空配置文件
+        print("\033[32m已恢复默认配置！\033[0m")
+        return
+    
+    if choice == '1':
+        new_path = input("请输入新的ASSISTANT_CONFIG路径（直接回车使用默认）: ").strip()
+        value = new_path if new_path else default_config['ASSISTANT_CONFIG']
+        os.environ['ASSISTANT_CONFIG'] = value
+        update_env_file('ASSISTANT_CONFIG', value)
+    elif choice == '2':
+        new_dir = input("请输入新的MODEL_SETTINGS_DIR路径（直接回车使用默认）: ").strip()
+        value = new_dir if new_dir else default_config['MODEL_SETTINGS_DIR']
+        os.environ['MODEL_SETTINGS_DIR'] = value
+        update_env_file('MODEL_SETTINGS_DIR', value)
+
+
 def perform_operation():
     operations = {
         1: print_welcome,
         2: calculate_sum,
-        3 : main,
-        4: exit_program
+        3: main,
+        4: exit_program,
+        5: configure_environment_vars
     }
-    for key, value in operations.items():
-        print(f"{key}. {value.__name__}")
     try:
-        choice = int(input("\033[31m请输入操作对应的数字：\033[0m"))
+        for key, value in operations.items():
+            print(f"{key}. {value.__name__.replace('_', ' ').title()}")
+        
+        choice = int(safe_input("\033[31m请输入操作对应的数字：\033[0m"))
+        
         if choice in operations:
-            result = operations[choice]()
-            if result is not None:
-                return
+            operations[choice]()
         else:
-            print("\033[31m输入的数字无效，请输入有效数字。\033[0m")
+            print("\033[31m输入无效，请重新选择\033[0m")
+    except ExitToMain:
+        print("\033[33m\n返回主菜单...\033[0m")
     except ValueError:
-        print("\033[31m输入无效，请输入一个有效的整数。\033[0m")
+        print("\033[31m请输入有效数字\033[0m")
     perform_operation()
 
 
@@ -177,3 +214,73 @@ if __name__ == "__main__":
 
     print_welcome()
     perform_operation()
+
+
+def update_env_file(key, value):
+    env_lines = []
+    if os.path.exists('.env'):
+        with open('.env', 'r') as f:
+            env_lines = f.readlines()
+    
+    # 移除旧配置
+    env_lines = [line for line in env_lines if not line.startswith(f'{key}=')]
+    
+    # 添加新配置
+    env_lines.append(f'{key}={value}\n')
+    
+    with open('.env', 'w') as f:
+        f.writelines(env_lines)
+    print("\033[32m配置已持久化保存！\033[0m")
+
+// ... existing code ...
+        OperationLogger.log_operation('环境变量更新', '成功')
+    except Exception as e:
+        OperationLogger.log_error('环境变量更新', e)
+
+
+def perform_operation():
+    operations = {
+        1: print_welcome,
+        2: calculate_sum,
+        3: main,
+        4: exit_program,
+        5: configure_environment_vars
+    }
+    try:
+        for key, value in operations.items():
+            print(f"{key}. {value.__name__.replace('_', ' ').title()}")
+        
+        choice = int(safe_input("\033[31m请输入操作对应的数字：\033[0m"))
+        
+        if choice in operations:
+            operations[choice]()
+        else:
+            print("\033[31m输入无效，请重新选择\033[0m")
+    except ExitToMain:
+        print("\033[33m\n返回主菜单...\033[0m")
+    except ValueError:
+        print("\033[31m请输入有效数字\033[0m")
+    perform_operation()
+
+
+if __name__ == "__main__":
+
+    print_welcome()
+    perform_operation()
+
+
+def update_env_file(key, value):
+    env_lines = []
+    if os.path.exists('.env'):
+        with open('.env', 'r') as f:
+            env_lines = f.readlines()
+    
+    # 移除旧配置
+    env_lines = [line for line in env_lines if not line.startswith(f'{key}=')]
+    
+    # 添加新配置
+    env_lines.append(f'{key}={value}\n')
+    
+    with open('.env', 'w') as f:
+        f.writelines(env_lines)
+    print("\033[32m配置已持久化保存！\033[0m")

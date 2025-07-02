@@ -2,6 +2,8 @@ import datetime
 import os
 import json
 import re
+import logging
+from logging.config import fileConfig
 
 
 def replace_consecutive_newlines(input_string):
@@ -126,24 +128,51 @@ def modify_json_system_content(file_path, new_content):
     except Exception as e:
         print(f"错误: 发生了一个未知错误: {e}")
 
-def ask_user_choice(file_list):
-    """
-    询问用户选择使用哪个文件
-    :param file_list: 可读取文件的列表
-    :return: 用户选择的文件路径
-    """
-    if not file_list:
-        print("未找到可读取的文件。")
-        return None
-    print("可读取的文件有：")
-    for i, file in enumerate(file_list, start=1):
-        print(f"{i}. {file}")
-    while True:
-        try:
-            choice = int(input("请输入要使用的文件编号: "))
-            if 1 <= choice <= len(file_list):
-                return file_list[choice - 1]
-            else:
-                print("输入的编号无效，请重新输入。")
-        except ValueError:
-            print("输入无效，请输入一个数字。")
+def ask_user_choice(files):
+    try:
+        for i, file in enumerate(files, 1):
+            print(f"{i}. {file}")
+        choice = int(safe_input("请输入要使用的文件编号: "))
+        return files[choice-1]
+    except ExitToMain:
+        print("\033[33m返回主菜单...\033[0m")
+        raise
+    except (ValueError, IndexError):
+        print("\033[31m输入无效，请重新选择\033[0m")
+        return ask_user_choice(files)
+
+class ExitToMain(Exception):
+    pass
+
+def safe_input(prompt):
+    try:
+        user_input = input(prompt)
+        if user_input.strip().lower() in ('\exit', '\quit'):
+            raise ExitToMain
+        return user_input
+    except EOFError:
+        raise ExitToMain
+
+
+# 日志配置路径
+LOG_CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'config/logging_config.ini')
+
+def init_logging():
+    try:
+        if not os.path.exists('logs'):
+            os.makedirs('logs')
+        fileConfig(LOG_CONFIG_PATH)
+        logger = logging.getLogger(__name__)
+        logger.info('日志系统初始化成功')
+    except Exception as e:
+        logging.basicConfig(level=logging.INFO)
+        logging.error(f'日志配置加载失败，使用基础配置: {str(e)}')
+
+class OperationLogger:
+    @staticmethod
+    def log_operation(operation: str, status: str):
+        logging.info(f'[{operation}] 操作状态: {status}')
+
+    @staticmethod
+    def log_error(operation: str, error: Exception):
+        logging.error(f'[{operation}] 发生错误', exc_info=error)
