@@ -1,7 +1,7 @@
 # TidalMind潮汐心智
 [![DeepSeek Compatible](https://img.shields.io/badge/Model-DeepSeek-6C48EE)](https://github.com/deepseek-ai)
 [![MacOS Ready](https://img.shields.io/badge/Mac%20Mini-M4%20Ready-00FEFF)]()
-
+###注意，该项目由于 git 相关错误暂停
 > "记忆如潮汐般涨落，而我是拾贝的少女" —— 林汐然
 
 ## 项目概述
