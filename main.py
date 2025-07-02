@@ -4,18 +4,15 @@ from openai import OpenAI
 
 from tknz.deepseek_tokenizer import get_tokenize
 from utils import *
+import os
 
 
 class ConfigManager:
     def __init__(self):
-        # 拼接配置文件夹的路径
-        self.CONFIG_DIR = '.assistant_config'
-        # 拼接 tknz 的路径
-        self.tknz_path = 'tknz'
-        # 拼接对话历史文件的路径
+        self.CONFIG_DIR = os.getenv('ASSISTANT_CONFIG', '.assistant_config')
+        self.tknz_path = os.path.join(os.path.dirname(__file__), 'tknz')
         self.HISTORY_FILE = os.path.join(self.CONFIG_DIR, 'conversation_history.json')
-        # 获取模型配置相关内容
-        self.model_settings_dir = "modelSettings"
+        self.model_settings_dir = os.getenv('MODEL_SETTINGS_DIR', 'modelSettings')
 
 config = ConfigManager()
 def selected_file():
