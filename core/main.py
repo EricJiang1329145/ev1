@@ -1,20 +1,39 @@
 import sys
+import os
+
+# 添加项目根目录到Python路径
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from openai import OpenAI
 
 from tknz.deepseek_tokenizer import get_tokenize
+<<<<<<< HEAD:main.py
 from utils import *
 import os
 from dotenv import load_dotenv
+=======
+from utils.utils import *
+>>>>>>> 14b239cc39d1cfd8b5024da405b102effec17145:core/main.py
 
 
 class ConfigManager:
     def __init__(self):
+<<<<<<< HEAD:main.py
         load_dotenv()  # 加载.env文件
         self.CONFIG_DIR = os.getenv('ASSISTANT_CONFIG', '.assistant_config')
         self.tknz_path = os.path.join(os.path.dirname(__file__), 'tknz')
         self.HISTORY_FILE = os.path.join(self.CONFIG_DIR, 'conversation_history.json')
         self.model_settings_dir = os.getenv('MODEL_SETTINGS_DIR', 'modelSettings')
+=======
+        # 拼接配置文件夹的路径
+        self.CONFIG_DIR = '../.assistant_config'
+        # 拼接 tknz 的路径
+        self.tknz_path = '../tknz'
+        # 拼接对话历史文件的路径
+        self.HISTORY_FILE = os.path.join(self.CONFIG_DIR, 'conversation_history.json')
+        # 获取模型配置相关内容
+        self.model_settings_dir = "../modelSettings"
+>>>>>>> 14b239cc39d1cfd8b5024da405b102effec17145:core/main.py
 
 config = ConfigManager()
 def selected_file():
@@ -75,10 +94,15 @@ def main():
 
     use_stream = False
     use_temperature = 0.9
+    # 初始化OpenAI客户端前添加验证
+    if not api_key_s:
+        print("\033[31m错误: API密钥未配置，请检查modelSettings文件或设置环境变量\033[0m")
+        sys.exit(1)
+    
     client = OpenAI(api_key=api_key_s, base_url=urls)
 
     # 调用函数并传入文件名
-    file_content = read_txt_file('prompt.txt')
+    file_content = read_txt_file('../prompt.txt')
 
     # 提示词预设库
     preset_prompts = {"林汐然": file_content}
@@ -211,7 +235,8 @@ def perform_operation():
 
 
 if __name__ == "__main__":
-
+    init_config()
+    
     print_welcome()
     perform_operation()
 
