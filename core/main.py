@@ -79,6 +79,11 @@ def main():
 
     use_stream = False
     use_temperature = 0.9
+    # 初始化OpenAI客户端前添加验证
+    if not api_key_s:
+        print("\033[31m错误: API密钥未配置，请检查modelSettings文件或设置环境变量\033[0m")
+        sys.exit(1)
+    
     client = OpenAI(api_key=api_key_s, base_url=urls)
 
     # 调用函数并传入文件名
@@ -181,6 +186,7 @@ def perform_operation():
 
 
 if __name__ == "__main__":
-
+    init_config()
+    
     print_welcome()
     perform_operation()

@@ -78,6 +78,7 @@ def read_specific_line(file_path, line_number):
         with open(file_path, 'r', encoding='utf-8') as file:
             for i, line in enumerate(file, start=1):
                 if i == line_number:
+                    print(f"成功读取 {file_path} 第 {line_number} 行内容")
                     return line.strip()
             return None
     except FileNotFoundError:
